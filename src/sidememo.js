@@ -1,5 +1,4 @@
 
-
 const nb = IPython.notebook;
 
 const SIDENOTE_MAGIC = '<!-- jupyter-side-memo -->';
@@ -528,7 +527,7 @@ function removeStyle() {
 }
 
 function isInstalled() {
-  return window['jupyter-sidenode'] && window['jupyter-sidenode'].installed;
+  return window['jupyter-sidenote'] && window['jupyter-sidenote'].installed;
 }
 
 function install() {
@@ -570,5 +569,6 @@ function toggleRun() {
   }
 }
 
+///
 module.exports = toggleRun;
 

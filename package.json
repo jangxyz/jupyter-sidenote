@@ -12,8 +12,8 @@
     "uglify-js": "^3.2.2"
   },
   "scripts": {
-    "build:sidememo": "babel sidememo.js --compact --minified --no-comments | uglifyjs --wrap > dist/sidememo.min.js",
-    "build": "browserify main.js | babel --compact --minified --no-comments --filename='main.js' | uglifyjs --mangle --compress > dist/main.min.js",
+    "build:sidememo": "babel src/sidememo.js --compact --minified --no-comments | uglifyjs --wrap > dist/sidememo.min.js",
+    "build": "browserify src/main.js | babel --compact --minified --no-comments --filename='main.js' | uglifyjs --mangle --compress > dist/main.min.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Kim, Jang-hwan <janghwan@gmail.com>",
