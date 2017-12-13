@@ -11,6 +11,71 @@ const STYLE_ALL_APPLIED_CL  = 'jupyter-sidenote-allstyle-applied';
 const CONTENT_STYLE_CL = 'jupyter-sidenote-content-style';
 const MEMO_STYLE_CL    = 'jupyter-sidenote-memo-style';
 
+const STYLE = `
+  .jupyter-sidenote-content-style {
+    display: inline-block !important;
+    width: 60% !important;
+  }
+
+  .jupyter-sidenote-memo-style {
+    display: inline-block !important;
+    width: 40% !important;
+    vertical-align: top !important;
+    /*margin-top: 6px !important;*/
+  }
+  .jupyter-sidenote-memo-style .inner_cell {
+    border: 1px solid white;
+    border: 1px solid transparent;
+  }
+  .jupyter-sidenote-memo-style.rendered:not(.selected) .inner_cell {
+    border: 1px solid rgb(251, 218, 69);
+  }
+  .jupyter-sidenote-memo-style.rendered .inner_cell {
+    background-color: rgb(252,250,197);
+    background-color: rgba(252,250,197, 0.5);
+  }
+  .jupyter-sidenote-memo-style.rendered .inner_cell .rendered_html pre {
+    margin: 1em 1em;
+  }
+  .jupyter-sidenote-memo-style.rendered .inner_cell .rendered_html pre,
+  .jupyter-sidenote-memo-style.rendered .inner_cell .rendered_html code {
+    background-color: transparent;
+  }
+
+  .jupyter-sidenote-memo-style.unrendered .CodeMirror-wrap:not(.CodeMirror-focused) .CodeMirror-lines .CodeMirror-code > *:first-child .CodeMirror-line {
+    background-color: #a50;
+  }
+  .jupyter-sidenote-memo-style.unrendered .CodeMirror-wrap:not(.CodeMirror-focused) .CodeMirror-lines .CodeMirror-code > *:first-child .CodeMirror-line > * > * {
+    display: none;
+  }
+
+  .sidenote-memo-toggle-button {
+    position: absolute; 
+    top: -1px; 
+    right: -1px;
+    border-radius: 0 0 0 3px;
+    z-index: 3;
+  }
+  .input_area .cm-s-ipython .sidenote-memo-toggle-button {
+    border: 1px solid #cfcfcf;
+  }
+  .input_area .cm-s-ipython.CodeMirror-focused .sidenote-memo-toggle-button {
+    background-color: rgb(254, 248, 171);
+    background: linear-gradient(rgb(252,250,197), rgb(254, 248, 171));
+    border: 1px solid rgb(251, 218, 69);
+  }
+
+  .jupyter-sidenote-global-memo-button.btn.btn-default {
+    color: rgb(254, 248, 171);
+  }
+  .jupyter-sidenote-global-memo-button.jupyter-sidenote-allstyle-applied.btn.btn-default {
+    background-color: rgb(254, 248, 171);
+    background: linear-gradient(rgb(252,250,197), rgb(254, 248, 171));
+    border: 1px solid rgb(251, 218, 69);
+    color: rgb(251, 218, 69);
+  }
+`;
+
 function onLoad() {
 }
 
@@ -53,13 +118,18 @@ function _convertToMarkdown(_cellIndex) {
   nb.to_markdown(cellIndex);
 }
 
+function _editCellByCellIndex(cellIndex) {
+  nb.select(cellIndex);
+  nb.edit_mode();
+}
+
 function _insertCellBelow(_cellIndex) {
   const cellIndex = _confirmCellIndex(_cellIndex);
 
   nb.command_mode();
   const newCell = nb.insert_cell_below();
-  nb.select(cellIndex + 1);
-  nb.edit_mode();
+
+  _editCellByCellIndex(cellIndex + 1);
 
   return newCell;
 }
@@ -218,21 +288,12 @@ function applySideMemoStyle($cell, $memo) {
   jQuery($cell)
     .addClass(CONTENT_STYLE_CL)
     .data('prev-style', $cell.getAttribute('style'))
-    //.css({
-    //  display: 'inline-block',
-    //  width: '66%',
-    //})
   ;
 
   jQuery($memo)
     .addClass(MEMO_STYLE_CL)
     .data('prev-style', $memo.getAttribute('style'))
-    //.css({
-    //  display: 'inline-block',
-    //  width: '33%',
-    //  'vertical-align': 'top',
-    //  'margin-top': '6px',
-    //});
+  ;
 }
 function resetSideMemoStyle($cell, $memo) {
   $cell.setAttribute('style', jQuery($cell).data('prev-style'));
@@ -268,7 +329,7 @@ function addSidenoteMemo($cell) {
   _selectCellByIndex(memoCellIndex);
 
   // enable edit mode
-  nb.edit_mode();
+  _editCellByCellIndex(memoCellIndex);
 
   return $memo;
 }
@@ -303,19 +364,9 @@ function removeSideMemo($cell) {
 
 //
 
-function buildCellMemoButton($cell) {
+function buildCellToggleMemoButton($cell) {
   const $button = document.createElement('button');
   $button.setAttribute('class', 'sidenote-memo-toggle-button');
-  //$button.setAttribute('style', `
-  //  position: absolute; 
-  //  top: -1px; 
-  //  right: -1px;
-  //  background-color: rgb(254, 248, 171);
-  //  background: linear-gradient(rgb(252,250,197), rgb(254, 248, 171));
-  //  border: 1px solid rgb(251, 218, 69);
-  //  border-radius: 0 0 0 3px;
-  //  z-index: 3;
-  //`);
   $button.textContent = '→';
 
   $button.addEventListener('click', (ev) => {
@@ -337,6 +388,32 @@ function buildCellMemoButton($cell) {
   return $button;
 }
 
+
+
+function buildCellSelectMemoButton($cell) {
+  const $button = document.createElement('button');
+  $button.setAttribute('class', 'sidenote-memo-toggle-button');
+  $button.innerHTML = '<i class="fa-file-o fa"></i>';
+
+  $button.addEventListener('click', (ev) => {
+    const $nextCell = nextCell($cell);
+    // insert memo
+    if (!isSidenoteMemo($nextCell)) {
+      addSidenoteMemo($cell);
+    }
+    // select memo
+    else {
+      setTimeout(() => {
+        const memoCellIndex = getCellIndex($nextCell);
+        console.log('selecting:', memoCellIndex, $nextCell);
+        _editCellByCellIndex(memoCellIndex);
+      }, 0);
+    }
+  });
+
+  return $button;
+}
+
 function attachMemoButton($cell) {
   // do not add button to memo
   if (isSidenoteMemo($cell)) {
@@ -348,7 +425,7 @@ function attachMemoButton($cell) {
     return $button;
   }
   //
-  $button = buildCellMemoButton($cell);
+  $button = buildCellSelectMemoButton($cell);
 
   //
   //$cell.appendChild($button);
@@ -399,12 +476,6 @@ function hasAnyMemoStyleApplied($cells) {
 function buildToolbarMemoButton() {
   const $button = document.createElement('button');
   $button.setAttribute('class', `btn btn-default ${GLOBAL_BUTTON_CL}`);
-  //$button.setAttribute('style', `
-  //  background-color: rgb(254, 248, 171);
-  //  background: linear-gradient(rgb(252,250,197), rgb(254, 248, 171));
-  //  border: 1px solid rgb(251, 218, 69);
-  //`);
-  //$button.textContent = '→';
   $button.innerHTML = '<i class="fa-file fa"></i>';
 
   $button.addEventListener('click', (ev) => {
@@ -441,48 +512,12 @@ function detachGlobalButton() {
   $globalButtonGroup && $globalButtonGroup.remove();
 }
 
+
 function insertStyle() {
   const $style = document.createElement('style');
   $style.setAttribute('type', 'text/css');
   $style.setAttribute('class', 'jupyter-sidenote-style');
-  $style.textContent = `
-    .jupyter-sidenote-content-style {
-      display: inline-block !important;
-      width: 66% !important;
-    }
-
-    .jupyter-sidenote-memo-style {
-      display: inline-block !important;
-      width: 33% !important;
-      vertical-align: top !important;
-      margin-top: 6px !important;
-    }
-
-    .sidenote-memo-toggle-button {
-      position: absolute; 
-      top: -1px; 
-      right: -1px;
-      border-radius: 0 0 0 3px;
-      z-index: 3;
-    }
-    .input_area .cm-s-ipython .sidenote-memo-toggle-button {
-      border: 1px solid #cfcfcf;
-    }
-    .input_area .cm-s-ipython.CodeMirror-focused .sidenote-memo-toggle-button {
-      background-color: rgb(254, 248, 171);
-      background: linear-gradient(rgb(252,250,197), rgb(254, 248, 171));
-      border: 1px solid rgb(251, 218, 69);
-    }
-
-    .jupyter-sidenote-global-memo-button {
-    }
-    .jupyter-sidenote-global-memo-button.jupyter-sidenote-allstyle-applied {
-      background-color: rgb(254, 248, 171);
-      background: linear-gradient(rgb(252,250,197), rgb(254, 248, 171));
-      border: 1px solid rgb(251, 218, 69);
-    }
-
-  `.trim();
+  $style.textContent = STYLE.trim();
 
   document.head.appendChild($style);
   return $style;
@@ -490,6 +525,10 @@ function insertStyle() {
 function removeStyle() {
   const $styles = document.head.querySelectorAll(`.jupyter-sidenote-style`);
   $styles.forEach($style => $style.remove());
+}
+
+function isInstalled() {
+  return window['jupyter-sidenode'] && window['jupyter-sidenode'].installed;
 }
 
 function install() {
@@ -504,6 +543,8 @@ function install() {
   $cells.forEach(attachMemoButton);
   // apply style to already memo
   applyAllMemoStyles($cells);
+
+  window['jupyter-sidenote'] = { installed: true };
 }
 
 function uninstall() {
@@ -515,5 +556,19 @@ function uninstall() {
 
   // remove global button
   detachGlobalButton();
+
+  document.querySelectorAll('[class^=jupyter-sidenote-]').forEach((el) => el.remove());
+
+  delete window['jupyter-sidenote'];
 }
+
+function toggleRun() {
+  if (isInstalled()) {
+    uninstall();
+  } else {
+    install();
+  }
+}
+
+module.exports = toggleRun;
 
