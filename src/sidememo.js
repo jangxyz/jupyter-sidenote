@@ -289,10 +289,12 @@ function applySideMemoStyle($cell, $memo) {
     .data('prev-style', $cell.getAttribute('style'))
   ;
 
-  jQuery($memo)
-    .addClass(MEMO_STYLE_CL)
-    .data('prev-style', $memo.getAttribute('style'))
-  ;
+  if (isSidenoteMemo($memo)) {
+    jQuery($memo)
+      .addClass(MEMO_STYLE_CL)
+      .data('prev-style', $memo.getAttribute('style'))
+    ;
+  }
 }
 function resetSideMemoStyle($cell, $memo) {
   $cell.setAttribute('style', jQuery($cell).data('prev-style'));
@@ -444,6 +446,18 @@ function detachMemoButton($cell) {
 // installation
 //
 
+function applySidenoteToNewCell(ev, cellObj) {
+  console.log('create new cell:', ev, cellObj);
+  const $cell = cellObj.cell.element[0];
+  attachMemoButton($cell);
+
+  const $memo = nextCell($cell);
+  if (isSidenoteMemo($memo)) {
+    applySideMemoStyle($cell, $memo);
+  }
+}
+
+
 function applyAllMemoStyles($cells) {
   const $memos = $cells.filter(isSidenoteMemo);
   $memos.forEach(($memo) => {
@@ -471,6 +485,7 @@ function hasAnyMemoStyleApplied($cells) {
 
   return false;
 }
+
 
 function buildToolbarMemoButton() {
   const $button = document.createElement('button');
@@ -538,15 +553,26 @@ function install() {
   attachGlobalButton();
 
   const $cells = getAllCells();
-  // attach memo buttons
+  // attach memo buttons and apply style
   $cells.forEach(attachMemoButton);
-  // apply style to already memo
   applyAllMemoStyles($cells);
 
+  //
+  if (Jupyter && Jupyter.notebook) {
+    Jupyter.notebook.events.on('create.Cell', applySidenoteToNewCell);
+  }
+
+  //
   window['jupyter-sidenote'] = { installed: true };
 }
 
 function uninstall() {
+
+  // unregister
+  if (Jupyter && Jupyter.notebook) {
+    Jupyter.notebook.events.off('create.Cell', applySidenoteToNewCell);
+  }
+
   const $cells = getAllCells();
   // reset all memo style
   resetAllMemoStyles($cells);
@@ -558,6 +584,7 @@ function uninstall() {
 
   document.querySelectorAll('[class^=jupyter-sidenote-]').forEach((el) => el.remove());
 
+  //
   delete window['jupyter-sidenote'];
 }
 
