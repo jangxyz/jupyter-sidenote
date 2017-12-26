@@ -41,10 +41,10 @@ const STYLE = `
     background-color: transparent;
   }
 
-  .rendered.cell.jupyter-sidenote-memo-style .rendered_html .jupyter-sidenote-memo-off {
+  .rendered.cell.jupyter-sidenote-memo-style .rendered_html .cell-jupyter-sidenote-memo-off {
     display: none;
   }
-  .rendered.cell:not(.jupyter-sidenote-memo-style) .rendered_html .jupyter-sidenote-memo-on {
+  .rendered.cell:not(.jupyter-sidenote-memo-style) .rendered_html .cell-jupyter-sidenote-memo-on {
     display: none;
   }
 
@@ -588,7 +588,9 @@ function uninstall() {
   // remove global button
   detachGlobalButton();
 
-  document.querySelectorAll('[class^=jupyter-sidenote-]').forEach((el) => el.remove());
+  document.querySelectorAll('[class^=jupyter-sidenote-]')
+    .filter()
+    .forEach((el) => el.remove());
 
   //
   delete window['jupyter-sidenote'];
