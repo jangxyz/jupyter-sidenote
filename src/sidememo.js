@@ -589,7 +589,6 @@ function uninstall() {
   detachGlobalButton();
 
   document.querySelectorAll('[class^=jupyter-sidenote-]')
-    .filter()
     .forEach((el) => el.remove());
 
   //
