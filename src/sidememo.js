@@ -41,6 +41,13 @@ const STYLE = `
     background-color: transparent;
   }
 
+  .rendered.cell.jupyter-sidenote-memo-style .rendered_html .jupyter-sidenote-memo-off {
+    display: none;
+  }
+  .rendered.cell:not(.jupyter-sidenote-memo-style) .rendered_html .jupyter-sidenote-memo-on {
+    display: none;
+  }
+
   .jupyter-sidenote-memo-style.unrendered .CodeMirror-wrap:not(.CodeMirror-focused) .CodeMirror-lines .CodeMirror-code > *:first-child .CodeMirror-line {
     background-color: #a50;
   }
@@ -567,7 +574,6 @@ function install() {
 }
 
 function uninstall() {
-
   // unregister
   if (Jupyter && Jupyter.notebook) {
     Jupyter.notebook.events.off('create.Cell', applySidenoteToNewCell);
