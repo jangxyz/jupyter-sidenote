@@ -44,6 +44,9 @@ const STYLE = `
   .rendered.cell.jupyter-sidenote-memo-style .rendered_html .cell-jupyter-sidenote-memo-off {
     display: none;
   }
+  .rendered.cell.jupyter-sidenote-memo-style .rendered_html .cell-jupyter-sidenote-memo-on {
+    display: block !important;
+  }
   .rendered.cell:not(.jupyter-sidenote-memo-style) .rendered_html .cell-jupyter-sidenote-memo-on {
     display: none;
   }
